@@ -120,3 +120,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+# STATIC_ROOT = ''  # TODO
+
+MEDIA_URL = '/media/'  # media 말고 다르게 지정가능. 파일 url 통해 접근할 때
+# MEDIA_ROOT = os.path.join(BASE_DIR, '..', 'pubilc', 'media')  
+# '..' 프로젝트 한 단계 상위 폴더 밑에 public에 media
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # 파일 저장할 때 

@@ -765,3 +765,472 @@ list_filter = ['created_at', 'is_public']
   실제로 문자열을 저장하는 필드 (중요)
 
 * 프로젝트 단위로 저장 / 서빙
+
+
+
+instagram 앱 models.py 에 photo 라는 필드 추가
+
+```python
+from django.db import models
+
+class Post(models.Model):
+    message = models.TextField()
+    photo = models.ImageField(blank=True)
+    is_public = models.BooleanField(default=False, verbose_name='공개여부')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # Java의 toString
+    def __str__(self):
+        # return f"Custom Post object ({self.id})"
+        # return "Custom Post object ({})".format(self.id)
+        return self.message
+    
+    # admin단에 구현도 가능함
+    # def message_length(self):    # 인자없는 함수만 가능
+    #     return len(self.message)
+    # message_length.short_description = "메세지 글자수"  # 이름도 변경 가능
+```
+
+`pip install pillow`  // 파이썬 이미지 라이브러리 다운
+
+manage.py 있는 경로에 requirements.txt 만들기
+
+```
+django~=3.0.0
+pillow
+```
+
+`pip install -r requirements.txt`  // 한번에 설치됨
+
+pillow 는 버전탈 일이 없어서 이름만 씀
+
+`python manage.py makemigrations instagram`
+
+`python manage.py migrate instagram`
+
+`python manage.py runserver`
+
+![사진](./imgs/2.png)
+
+사진 입력 UI가 나옴
+
+
+
+### Media 파일 처리 순서
+
+1. HttpRequest.FILES를 통해 파일이 전달
+2. 뷰 로직이나 폼 로직을 통해, 유효성 검증을 수행하고,
+3. FileField/ImageField 필드에 "경로(문자열)"를 저장하고,
+4. settings.MEDIA_ROOT 경로에 파일을 저장
+
+
+
+### Media 파일, 관련 settings 예시
+
+#### 각 설정의 디폴트 값
+
+MEDIA_URL = ""
+
+각 media 파일에 대한 URL Prefix
+
+필드명.url 속성에 의해서 참조되는 설정
+
+MEDIA_ROOT = ""
+
+파일필드를 통한 저장 시에, 실제 파일을 저장할 ROOT 경로
+
+아래와 같이 기본 settings
+
+```python
+# STATIC_ROOT = ''  # TODO
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+```
+
+or
+
+```python
+# STATIC_ROOT = ''  # TODO
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, '..', 'pubilc', 'media')  
+# '..' 프로젝트 한 단계 상위 폴더 밑에 public에 media
+```
+
+
+
+## FileField와 ImageField
+
+#### FileField
+
+* File Storage API를 통해 파일을 저장
+
+  장고에서는 File System Storage만 지원. django-storages를 통해 확장 지원.
+
+* 해당 필드를 옵션 필드로 두고자 할 경우, blank=True 옵션 적용
+
+#### ImageField (FileField 상속)
+
+* Pillow (이미지 처리 라이브러리)를 통해 이미지 width/height 획득
+
+  Pillow 미설치 시에, ImageField를 추가한 makemigrations 수행에 실패함
+
+#### 위 필드를 상속받은 커스텀 필드를 만들 수도 있음
+
+* ex) PDFField, ExcelField 등
+
+
+
+### 모델 필드 예시
+
+```python
+class Post(models.Model):
+    author_name = models.CharField(max_length=20)
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+    photo = models.ImageField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+```
+
+
+
+### 사용할 만한 필드 옵션
+
+blank 옵션
+
+* 업로드 옵션처리 여부
+* 디폴트: False
+
+upload_to 옵션
+
+* settings.MEDIA_ROOT 하위에서 저장한 파일명/경로명 결정
+
+* 디폴트 : 파일명 그대로 settings.MEDIA_ROOT 에 저장
+
+  추천) 성능을 위해, 한 디렉토리에 너무 많은 파일들이 저장되지 않도록 조정하기
+
+* 동일 파일명으로 저장 시에, 파일명에 더미 문자열을 붙여 파일 덮어쓰기 방지
+
+프로젝트seolyupjt에 urls.py
+
+```python
+"""seolyupjt URL Configuration
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/3.0/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from django.contrib import admin
+from django.urls import path, include
+
+# 아래와 같이 쓰면 안됨
+# from seolyupjt import settings
+# 왜냐하면
+# from django.conf import global_settings 가 합쳐져야하므로
+# 위 기본에다가 저 위에 settings 를 overwrite 하는거라서
+from django.conf import settings  # 위 두가지 합쳐준거
+
+urlpatterns = [
+    path('admin/', admin.site.urls),  # URL Reverse 기능
+    path('blog1/', include('blog1.urls')),
+    path('instagram/', include('instagram.urls')),
+]
+
+settings.MEDIA_URL
+settings.MEDIA_ROOT
+```
+
+
+
+settings.py 에 아까 추가한거
+
+```python
+MEDIA_URL = '/media/'  # media 말고 다르게 지정가능. 파일 url 통해 접근할 때
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # 파일 저장할 때
+```
+
+파일 읽어서 줘야하는데 장고 기본 설정에 그런게 없음
+
+프로젝트 urls.py에
+
+```python
+from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import path, include
+
+# 아래와 같이 쓰면 안됨
+# from seolyupjt import settings
+# 왜냐하면
+# from django.conf import global_settings 가 합쳐져야하므로
+# 위 기본에다가 저 위에 settings 를 overwrite 하는거라서
+from django.conf import settings  # 위 두가지 합쳐준거
+
+urlpatterns = [
+    path('admin/', admin.site.urls),  # URL Reverse 기능
+    path('blog1/', include('blog1.urls')),
+    path('instagram/', include('instagram.urls')),
+]
+
+settings.MEDIA_URL
+settings.MEDIA_ROOT
+
+# DEBUG 참일 때
+if settings.DEBUG:
+    # url 리스트를 urlpatterns에 추가함
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+```
+
+```python
+from django.conf.urls.static import static
+
+# DEBUG 참일 때
+if settings.DEBUG:
+    # url 리스트를 urlpatterns에 추가함
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+```
+
+![사진](./imgs/3.png)
+
+instagram 에 admin.py
+
+```python
+from django.contrib import admin
+from .models import Post
+
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    list_display = ['id', 'photo_tag', 'message', 'message_length', 'is_public', 'created_at', 'updated_at']
+    list_display_links = ['message']  # 여러개 가능
+    list_filter = ['created_at', 'is_public']
+    search_fields = ['message']
+
+    def photo_tag(self, post):
+        if post.photo:
+            return f'<img src="{post.photo.url}" />'
+        return None
+
+    def message_length(self, post):
+        # return len(post.message)
+        return f"{len(post.message)} 글자"
+```
+
+list_display 에 photo_tag 추가하고
+
+함수 추가
+
+![이미지태그](./imgs/4.png)
+
+```python
+from django.utils.safestring import mark_safe
+
+
+def photo_tag(self, post):
+        if post.photo:
+            return mark_safe(f'<img src="{post.photo.url}" />')
+        return None
+```
+
+이렇게 하면 이미지 나오는데 큼
+
+```python
+def photo_tag(self, post):
+        if post.photo:
+            return mark_safe(f'<img src="{post.photo.url}" style="width: 72px;" />')
+        return None
+```
+
+
+
+instagram > models.py
+
+```python
+photo = models.ImageField(blank=True, upload_to='instagram/post/%Y/%m/%d/%H/%M/%S')
+```
+
+파일을 다시 올려보면
+
+![5](./imgs/5.png)
+
+![6](./imgs/6.png)
+
+![7](./imgs/7.png)
+
+
+
+## 파일 업로드 시에 HTML Form enctype
+
+### form method는 필히 POST로 지정
+
+* GET의 경우 enctype이 "application/x-www-form-urlencoded"로 고정
+
+### form enctype을 필히 "multipart/form-data"로 지정
+
+* "application/x-www-form-urlencoded"의 경우, 파일명만 전송
+
+
+
+## upload_to 인자
+
+#### 파일 저장 시에 upload_to 함수를 호출하여, 저장 경로를 계산
+
+파일 저장 시에 upload_to 인자를 변경한다고 해서, DB에 저장된 경로값이 갱신되진 않음
+
+#### 인자 유형
+
+* 문자열로 지정
+
+  파일을 저장할 "중간 디렉토리 경로"로서 활용
+
+* 함수로 지정
+
+  "중간 디렉토리 경로" 및 "파일명"까지 결정 가능
+
+
+
+## 파일 저장경로
+
+travel-20181225.jpg 파일을 업로드할 경우
+
+MEDIA_ROOT/travel-20181225.jpg 경로에 저장되며,
+
+DB에는 "travel-20181225.jpg" 문자열을 저장함
+
+
+
+## 파일 저장경로 / 커스텀
+
+### upload_to 옵션
+
+한 디렉토리에 파일을 너무 많이 몰아둘 경우, OS 파일찾기 성능 저하. 디렉토리 Depth가 깊어지는 것은 성능에 큰 영향 없음.
+
+필드 별로, 다른 디렉토리 저장경로를 가지기
+
+대책1) 필드 별로 다른 디렉토리에 저장
+
+photo = models.ImageField(upload_to="blog")
+
+photo = models.ImageField(upload_to="blog/photo")
+
+대책2) 업로드 시간대 별로 다른 디렉토리에 저장
+
+upload_to에서 strftime 포맷팅을 지원
+
+photo = models.ImageField(upload_to="blog/%Y/%m/%d")
+
+
+
+### ex) uuid를 통한 파일명 정하기
+
+```python
+import os
+from uuid import uuid4
+from django.utils import timezone
+
+def uuid_name_upload_to(instance, filename):
+    app_label = instance.__class__._meta.app_label  # 앱 별로
+    cls_name = instance.__class__.__name__.lower()  # 모델 별로
+    ymd_path = timezone.now().strftime('%Y/%m/%d')  # 업로드하는 년/월/일 별로
+    uuid_name = uuid4().hex
+    extension = os.path.splitext(filename)[-1].lower()  # 확장자 추출하고, 소문자로 변환
+    return '/'.join([
+        app_label,
+        cls_name,
+        ymd_path,
+        uuid_name[:2],
+        uuid_name + extension,
+    ])
+```
+
+
+
+32 글자의 랜덤 문자열
+
+![8](./imgs/8.png)
+
+![9](./imgs/9.png)
+
+
+
+![10](./imgs/10.png)
+
+![11](./imgs/11.png)
+
+
+
+## 템플릿에서 media URL 처리 예시
+
+### 필드의 .url 속성을 활용하기
+
+내부적으로 settings.MEDIA_URL과 조합을 처리
+
+```html
+<img src="{{ post.photo.url }}" %}" />
+```
+
+필드에 저장된 경로에 없을 경우, .url 계산에 실패함에 유의. 그러니 안전하게 필드명 저장유무를 체크
+
+```html
+{% if post.photo %}
+	<img src="{{ post.photo.url }}" %}" />
+{% endif %}
+```
+
+참고) 파일 시스템 상의 절대경로가 필요하다면, .path 속성을 활용
+
+settings.MEDIA_ROOT와 조합
+
+![12](./imgs/12.png)
+
+![13](./imgs/13.png)
+
+
+
+## 개발환경에서의 media 파일 서빙
+
+static 파일과 다르게, 장고 개발서버에서 서빙 미지원
+
+개발 편의성 목적으로 직접 서빙 Rule 추가 기능
+
+```python
+from django.conf import settings
+from django.conf.urls.static import static
+
+# 중략
+urlpatterns += static(settings.MEDIA_URL, document_root=settingsMEDIA_ROOT)
+```
+
+
+
+## File Upload Handler
+
+(임시 처리. 실제 파일 디스크에 저장하기 전에 유저가 업로드한 파일을 임시적으로 어디에 담아두느냐)
+
+#### 파일크기가 2.5MB 이하일 경우
+
+메모리에 담겨 전달
+
+MemoryFileUploadHandler
+
+#### 파일크기가 2.5MB 초과일 경우
+
+디스크에 담겨 전달
+
+TemporaryFileUploadHandler
+
+#### 관련 설정
+
+settings.FILE_UPLOAD_MAX_MEMORY_SIZE
+
+=> 2.5MB
