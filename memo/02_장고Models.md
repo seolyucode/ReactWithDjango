@@ -555,8 +555,8 @@ instagram > models.py
 
 ```python
 def message_length(self):    # 인자없는 함수만 가능
-        return len(self.message)
-    message_length.short_description = "메세지 글자수"  # 이름도 변경 가능
+    return len(self.message)
+message_length.short_description = "메세지 글자수"  # 이름도 변경 가능
 ```
 
 위를 admin단에 구현해보려면 주석처리하고 admin.py 가서
@@ -743,3 +743,25 @@ list_display = ['id', 'message', 'message_length', 'is_public', 'created_at', 'u
 list_filter = ['created_at', 'is_public']
 ```
 
+
+
+
+
+## media 파일을 다루는 방법
+
+### Static & Media 파일
+
+#### Static 파일
+
+* 개발 리소스로서의 정적인 파일 (js, css, image 등)
+* 앱 / 프로젝트 단위로 저장 / 서빙
+
+#### Media 파일
+
+* FileField / ImageField를 통해 저장한 모든 파일
+
+* DB필드에는 저장경로를 저장하며, 파일은 파일 스토리지에 저장
+
+  실제로 문자열을 저장하는 필드 (중요)
+
+* 프로젝트 단위로 저장 / 서빙
