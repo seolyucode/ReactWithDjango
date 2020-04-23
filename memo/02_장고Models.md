@@ -1234,3 +1234,163 @@ TemporaryFileUploadHandler
 settings.FILE_UPLOAD_MAX_MEMORY_SIZE
 
 => 2.5MB
+
+
+
+
+
+## 장고 쉘
+
+Python Interactive Shell
+
+기본 파이썬 쉘
+
+* IPython : https://ipython.org/
+* Jupyter Notebook with Python Kernel <- IPython 웹버전
+* BPython : https://bpython-interpreter.org/
+
+![기본쉘](./imgs/14.png)
+
+기본쉘
+
+
+
+일반 파이썬 쉘에서 장고 프로젝트에 접근하면
+
+`>>> python`
+
+![15](./imgs/15.png)
+
+
+
+장고 프로젝트 설정이 로딩된 파이썬 쉘
+
+쉘> python manage.py shell
+
+우선순위 : ipython 쉘, bpython 쉘, python 쉘
+
+옵션
+
+-i (--interface) : 인터프리터 인터페이스 커스텀 지정
+
+-c (--command) : 실행할 파이썬 코드를 문자열로 지정
+
+```
+개발환경에서는 ipython 쉘 추천
+서비스 환경에서는 쉘을 띄우지 않음
+```
+
+![16](./imgs/16.png)
+
+
+
+`conda install jupyter`  // 주피터 노트북이 설치되면서 IPython 같이 설치됨
+
+`ipython`
+
+`python manage.py shell`
+
+`jupyter notebook`
+
+
+
+### --command 옵션 활용
+
+![17](./imgs/17.png)
+
+### --command 옵션과 유사한 활용
+
+![18](./imgs/18.png)
+
+
+
+파이썬 코드에서도 번거로우나, 가능
+
+```python
+import os
+# DJANGO_SETTINGS_MODULE 환경변수 미지정 시에, "seolyupjt.settings"로 지정하겠다는 의미
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'seolyupjt.settings')
+
+# 다른 경로에 장고 프로젝트가 있다면
+# import sys
+# sys.path.insert(0, '장고 프로젝트 경로')
+
+import django
+django.setup()  # 장고 프로젝트 셋업
+
+# 이제 현 장고 프로젝트에 대한 모든 리소스에 접근 가능
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+print(User.objects.all())
+```
+
+
+
+manage.py 에 가보면
+
+```python
+#!/usr/bin/env python
+"""Django's command-line utility for administrative tasks."""
+import os
+import sys
+
+
+def main():
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'seolyupjt.settings')
+    try:
+        from django.core.management import execute_from_command_line
+    except ImportError as exc:
+        raise ImportError(
+            "Couldn't import Django. Are you sure it's installed and "
+            "available on your PYTHONPATH environment variable? Did you "
+            "forget to activate a virtual environment?"
+        ) from exc
+    execute_from_command_line(sys.argv)
+
+
+if __name__ == '__main__':
+    main()
+
+```
+
+여기서
+
+```python
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'seolyupjt.settings')
+```
+
+장고가 시작될 때 꼭 필요한 환경 변수
+
+장고 settings 위치 알려달라는
+
+장고에 필요한 설정을 읽어들임
+
+![19](./imgs/19.png)
+
+![20](./imgs/20.png)
+
+![21](./imgs/21.png)
+
+![22](./imgs/22.png)
+
+
+
+`jupyter notebook`
+
+![23](./imgs/23.png)
+
+![24](./imgs/24.png)
+
+django2는 되는데 django3는 Asynchronous support
+
+![25](./imgs/25.png)
+
+![26](./imgs/26.png)
+
+
+
+---------------------------
+
+✌︎('ᴗ'✌︎ ) ✌︎('ᴗ')✌︎ ( ✌︎'ᴗ')✌︎
+
