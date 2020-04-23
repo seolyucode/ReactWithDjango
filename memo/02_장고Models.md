@@ -1394,3 +1394,186 @@ django2는 되는데 django3는 Asynchronous support
 
 ✌︎('ᴗ'✌︎ ) ✌︎('ᴗ')✌︎ ( ✌︎'ᴗ')✌︎
 
+
+
+## 모델을 통한 조회 (기초)
+
+## Model Manager
+
+데이터베이스 질의 인터페이스를 제공 
+
+디폴트 Manager로서 ModelCls.objects 가 제공
+
+```
+# 생성되는 대강의 SQL 윤곽 -> SELECT * FROM app_model; 
+ModelCls.objects.all()
+
+# 생성되는 대강의 SQL 윤곽 -> SELECT * FROM app_model ORDER BY id DESC LIMIT 10; 
+ModelCls.objects.all().order_by('-id')[:10]
+
+# 생성되는 대강의 SQL 윤곽 -> INSERT INTO app_model (title) VALUES (“New Title”); 
+ModelCls.objects.create(title="New Title")
+```
+
+![27](./imgs/27.png)
+
+![28](./imgs/28.png)
+
+![29](./imgs/29.png)
+
+
+
+
+
+## QuerySet
+
+### SQL을 생성해주는 인터페이스 
+
+### 순회가능한 객체 (for loop 사용)
+
+![30](./imgs/30.png)
+
+![31](./imgs/31.png)
+
+#### Model Manager를 통해, 해당 Model에 대한 QuerySet을 획득 
+
+```
+Post.objects.all() 코드는 "SELECT * FROM post ...;"
+Post.objects.create(…) 코드는 "INSERT INTO …...;"
+```
+
+
+
+## QuerySet은 Chaining을 지원
+
+```
+Post.objects.all().filter(…).exclude(…).filter(…) -> QuerySet 
+```
+
+![32](./imgs/32.png)
+
+![33](./imgs/33.png)
+
+Chaining 길다고 엔터치면 오류남
+
+![34](./imgs/34.png)
+
+![35](./imgs/35.png)
+
+![36](./imgs/36.png)
+
+
+
+QueyrSet은 Lazy한 특성
+
+* QuerySet을 만드는 동안에는 DB접근을 하지 않음. 
+* 실제로 데이터가 필요한 시점에 접근.
+
+데이터가 필요한 시점은
+
+1. queryset
+2. print(queryset)
+3. list(queryset)
+4. for instance in queryset: print(instance)
+
+
+
+## 다양한 조회요청 방법 
+
+#### SELECT SQL 생성
+
+#### 조건을 추가한 Queryset, 획득할 준비 
+
+```
+queryset.filter(...) -> queryset 
+queryset.exclude(...) -> querryset 
+```
+
+![37](./imgs/37.png)
+
+![38](./imgs/38.png)
+
+#### 특정 모델객체 1개 획득을 시도
+
+##### queryset[숫자인덱스]
+
+=> 모델객체 혹은 예외발생 (IndexError)
+
+![39](./imgs/39.png) 
+
+##### queryset.get(...)
+
+=> 모델객체 혹은 예외발생 (DoesNotExist , MultipleObjectsReturned) 
+
+![40](./imgs/40.png)
+
+![41](./imgs/41.png)
+
+### queryset.first() => 모델객체 혹은 None 
+
+### queryset.last() => 모델객체 혹은 None
+
+![42](./imgs/42.png)
+
+![43](./imgs/43.png)
+
+![44](./imgs/44.png)
+
+
+
+## filter <=> exclude 
+
+#### SELECT 쿼리에 WHERE 조건 추가 
+
+인자로 “필드명 = 조건값” 지정 
+
+1개 이상의 인자 지정 => 모두 AND 조건으로 묶임. 
+
+OR 조건을 묶을려면, django.db.models.Q 활용
+
+![45](./imgs/45.png)
+
+![46](./imgs/46.png)
+
+OR 조건 추가
+
+![47](./imgs/47.png)
+
+
+
+
+
+## 필드 타입별 다양한 조건 매칭 
+
+### 주의)데이터베이스에 따라 생성되는 SQL이 다름
+
+#### 숫자/날짜/시간 필드 
+
+```
+필드명__lt = 조건값 => 필드명 < 조건값 
+필드명__lte = 조건값 => 필드명 <= 조건값 
+필드명__gt = 조건값 => 필드명 > 조건값 
+필드명__gte = 조건값 => 필드명 >= 조건값 
+```
+
+```
+lt -> less than 
+lte -> less than equal 
+gt -> greater than 
+gte -> greater than equal 
+```
+
+
+
+#### 문자열 필드 
+
+```
+필드명__startswith = 조건값 => 필드명 LIKE “조건값%” 
+필드명__istartswith = 조건값 => 필드명 ILIKE “조건값%” 
+필드명__endswith = 조건값 => 필드명 LIKE “%조건값” 
+필드명__iendswith = 조건값 => 필드명 ILIKE “%조건값” 
+필드명__contains = 조건값 => 필드명 LIKE “%조건값%” 
+필드명__icontains = 조건값 => 필드명 ILIKE “%조건값%” 
+```
+
+#### ETC
