@@ -4,7 +4,7 @@
 
 데이터베이스 : RDBMS, NoSQL 등
 
-파일 : 로컬, 외부 정적 스토리지
+파일 : 로컬, 외부 정적 스토리지seho
 
 캐시서버 : memcached, redis 등
 
@@ -170,7 +170,7 @@ urlpatterns = [
 
 앱 등록 완료 후
 
-shop/models.py
+instagram/models.py
 
 ```python
 from django.db import models
@@ -198,7 +198,7 @@ class Post(models.Model):
 
 ## 적용 순서
 
-Item 모델 정의
+Post 모델 정의
 
 마이그레이션 파일 생성 `python manage.py makemigrations 앱이름`
 
