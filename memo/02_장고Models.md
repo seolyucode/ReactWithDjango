@@ -1577,3 +1577,49 @@ gte -> greater than equal
 ```
 
 #### ETC
+
+
+
+---
+
+### Queryset을 통한 간단 검색 구현
+
+ex) Item 목록/간단검색 페이지
+
+```python
+# shop/views.py
+from django.shortcuts import render 
+from .models import Item 
+# 중략 ... 
+def item_list(request): 
+    qs = Item.objects.all() 
+    q = request.GET.get('q', ’’) 
+    if q: 
+        qs = qs.filter(name__icontains=q)
+    
+    return render(request, 'shop/item_list.html', { 
+        'item_list': qs, 
+        ‘q’: q, 
+    })
+# shop/urls.py 
+# 중략 ...
+urlpatterns = [ 
+    path('', views.item_list), 
+]
+<!-- shop/templates/shop/item_list.html -->
+<form action="" method="GET"> 
+	<input type="text" name="q" value=”{{ q }}" /> 
+    <input type="submit" value="검색" /> 
+</form> 
+<hr/>
+{% for item in item_list %} 
+    <div> 
+        <h3>{{ item.name }}</h3> 
+        <h4>가격: {{ item.price }}</h4> 
+        {% if item.desc %} 
+            <p>{{ item.desc }}</p> 
+        {% endif %} 
+    </div> 
+{% endfor %}
+```
+
